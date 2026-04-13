@@ -296,11 +296,23 @@ class BaseTransformerModel(CompiledMethodsMixin, ABC):
             device = str(self.device)
 
         with safe_open(file_path, framework="pt", device=device) as f:
-            return {
-                key: (f.get_tensor(key).to(GET_DTYPE()) if unified_dtype or all(s not in key for s in sensitive_layer) else f.get_tensor(key).to(GET_SENSITIVE_DTYPE()))
-                for key in f.keys()
-                if not any(remove_key in key for remove_key in remove_keys) and (preserve_keys is None or any(preserve_key in key for preserve_key in preserve_keys))
-            }
+            result = {}
+            for key in f.keys():
+                if any(remove_key in key for remove_key in remove_keys):
+                    continue
+                if preserve_keys is not None and not any(preserve_key in key for preserve_key in preserve_keys):
+                    continue
+                t = f.get_tensor(key)
+                # Kijai版fp8モデルはキーが"scale_weight"だがLightX2Vは"weight_scale"を期待する
+                if "scale_weight" in key:
+                    new_key = key.replace("scale_weight", "weight_scale")
+                    result[new_key] = t.to(torch.float32)
+
+                elif unified_dtype or all(s not in key for s in sensitive_layer):
+                    result[key] = t.to(GET_DTYPE())
+                else:
+                    result[key] = t.to(GET_SENSITIVE_DTYPE())
+            return result
 
     def _load_ckpt(self, unified_dtype, sensitive_layer):
         """Load checkpoint weights.
@@ -395,13 +407,18 @@ class BaseTransformerModel(CompiledMethodsMixin, ABC):
                 for k in f.keys():
                     if any(remove_key in k for remove_key in remove_keys):
                         continue
-                    if f.get_tensor(k).dtype in [torch.float16, torch.bfloat16, torch.float]:
+                    t = f.get_tensor(k)
+                    # Kijai版fp8モデルはキーが"scale_weight"だがLightX2Vは"weight_scale"を期待する（最初にチェック）
+                    if "scale_weight" in k:
+                        new_k = k.replace("scale_weight", "weight_scale")
+                        weight_dict[new_k] = t.to(torch.float32).to(self.device)
+                    elif t.dtype in [torch.float16, torch.bfloat16, torch.float]:
                         if unified_dtype or all(s not in k for s in sensitive_layer):
-                            weight_dict[k] = f.get_tensor(k).to(GET_DTYPE()).to(self.device)
+                            weight_dict[k] = t.to(GET_DTYPE()).to(self.device)
                         else:
-                            weight_dict[k] = f.get_tensor(k).to(GET_SENSITIVE_DTYPE()).to(self.device)
+                            weight_dict[k] = t.to(GET_SENSITIVE_DTYPE()).to(self.device)
                     else:
-                        weight_dict[k] = f.get_tensor(k).to(self.device)
+                        weight_dict[k] = t.to(self.device)
 
         # Load calibration data for nvfp4
         if self.config.get("dit_quant_scheme", "Default") == "nvfp4":
