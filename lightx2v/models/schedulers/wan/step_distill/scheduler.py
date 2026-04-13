@@ -3,22 +3,41 @@ from typing import Union
 
 import torch
 
+from lightx2v.models.schedulers.scheduler import BaseScheduler
 from lightx2v.models.schedulers.wan.scheduler import WanScheduler
 from lightx2v_platform.base.global_var import AI_DEVICE
 
 
 class WanStepDistillScheduler(WanScheduler):
     def __init__(self, config):
-        super().__init__(config)
+        # WanSchedulerのdim/num_headsが不要なためBaseSchedulerのみ呼ぶ
+        BaseScheduler.__init__(self, config)
         self.denoising_step_list = config["denoising_step_list"]
         self.infer_steps = len(self.denoising_step_list)
         self.sample_shift = self.config["sample_shift"]
+        self.noise_pred = None
 
         self.num_train_timesteps = 1000
         self.sigma_max = 1.0
         self.sigma_min = 0.0
 
+    def prepare_latents(self, seed, latent_shape, dtype=torch.float32):
+        # ComfyUI版と一致させるためCPU generatorでnoise生成後GPUに転送
+        self.generator = torch.Generator(device="cpu").manual_seed(seed)
+        self.latents = torch.randn(
+            latent_shape[0],
+            latent_shape[1],
+            latent_shape[2],
+            latent_shape[3],
+            dtype=dtype,
+            device="cpu",
+            generator=self.generator,
+        ).to(AI_DEVICE)
+        print(f"[PREPARE_LATENTS] seed={seed}, latents std={self.latents.float().std():.4f}, shape={list(self.latents.shape)}")
+
     def prepare(self, seed, latent_shape, image_encoder_output=None):
+        if image_encoder_output is not None and "vae_encoder_out" in image_encoder_output:
+            self.vae_encoder_out = image_encoder_output["vae_encoder_out"]
         self.prepare_latents(seed, latent_shape, dtype=torch.float32)
         self.set_denoising_timesteps(device=AI_DEVICE)
 
@@ -42,11 +61,18 @@ class WanStepDistillScheduler(WanScheduler):
     def step_post(self):
         flow_pred = self.noise_pred.to(torch.float32)
         sigma = self.sigmas[self.step_index].item()
-        noisy_image_or_video = self.latents.to(torch.float32) - sigma * flow_pred
-        if self.step_index < self.infer_steps - 1:
-            sigma_n = self.sigmas[self.step_index + 1].item()
-            noisy_image_or_video = noisy_image_or_video + flow_pred * sigma_n
+        sample_before = self.latents.float().std().item()
+        latents_f32 = self.latents.to(torch.float32)
+
+        # sigma_n: 次ステップのsigma（最終ステップは0）
+        sigma_n = self.sigmas[self.step_index + 1].item() if self.step_index < self.infer_steps - 1 else 0.0
+        # Euler相当: latents + flow_pred * (sigma_n - sigma)
+        noisy_image_or_video = latents_f32 + flow_pred * (sigma_n - sigma)
+
         self.latents = noisy_image_or_video.to(self.latents.dtype)
+        print(f"[SCHEDULER_DISTILL] step{self.step_index}: latents_before std={sample_before:.4f}, flow_pred mean={flow_pred.float().mean():.4f}, std={flow_pred.float().std():.4f}, sigma={sigma:.4f}, latents_after std={self.latents.float().std():.4f}")
+        if self.step_index == self.infer_steps - 1:
+            print(f"[FINAL_LATENT] latents shape={list(self.latents.shape)}, std={self.latents.float().std():.4f}")
 
 
 class Wan21MeanFlowStepDistillScheduler(WanStepDistillScheduler):
@@ -81,9 +107,7 @@ class Wan22StepDistillScheduler(WanStepDistillScheduler):
         flow_pred = self.noise_pred.to(torch.float32)
         sigma = self.sigmas[self.step_index].item()
         noisy_image_or_video = self.latents.to(torch.float32) - flow_pred * sigma
-        # self.latent: x_t
         if self.step_index < self.infer_steps - 1:
             sigma_n = self.sigmas[self.step_index + 1].item()
             noisy_image_or_video = noisy_image_or_video + flow_pred * sigma_n
-
         self.latents = noisy_image_or_video.to(self.latents.dtype)
