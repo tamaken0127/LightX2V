@@ -122,6 +122,7 @@ class WanPreInfer:
                     idx_e = kv_end // frame_seq_length
                     image_encoder = image_encoder[:, idx_s:idx_e, :, :]
                 y = image_encoder
+
                 x = torch.cat([x, y], dim=0)
 
         # embeddings
