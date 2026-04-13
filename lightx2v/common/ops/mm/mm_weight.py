@@ -640,23 +640,23 @@ class MMWeightWfp8channelAfp8channeldynamicVllm(MMWeightQuantTemplate):
         self.scale_force_fp32 = True
 
     def apply(self, input_tensor):
-        shape = (input_tensor.shape[0], self.weight.shape[1])
-        dtype = input_tensor.dtype
-        device = input_tensor.device
-        output_tensor = torch.empty(shape, dtype=dtype, device=device, requires_grad=False)
-
-        input_tensor_quant, input_tensor_scale = self.act_quant_func(input_tensor)
-        torch.ops._C.cutlass_scaled_mm(
-            output_tensor,
-            input_tensor_quant,
-            self.weight,
-            input_tensor_scale,
-            self.weight_scale,
-            self._get_actual_bias(),
-        )
+        # ComfyUI default互換: fp8 * scale -> float16 -> 通常matmul
+        orig_dtype = input_tensor.dtype
+        # scaleを適用してfloat16に変換（ComfyUIのロード時処理を再現）
+        weight_f16 = (self.weight.to(torch.float32) * self.weight_scale).to(torch.float16)
+        input_f16 = input_tensor.to(torch.float16)
+        bias = self._get_actual_bias()
+        if bias is not None:
+            bias = bias.to(torch.float16)
+        orig_shape = input_f16.shape
+        input_2d = input_f16.reshape(-1, orig_shape[-1])
+        output = torch.mm(input_2d, weight_f16).reshape(*orig_shape[:-1], weight_f16.shape[1])
+        if bias is not None:
+            output = output + bias
+        output = output.to(orig_dtype)
         if self.has_lora_branch:
-            return output_tensor + self.apply_lora(input_tensor)
-        return output_tensor
+            return output + self.apply_lora(input_tensor)
+        return output
 
 
 @MM_WEIGHT_REGISTER("int8-vllm")
