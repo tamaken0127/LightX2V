@@ -189,7 +189,6 @@ class LightX2VPipeline:
             set_parallel_config(config)
 
         self.runner = self._init_runner(config)
-        print(self.runner.config)
         logger.info(f"Initializing {self.model_cls} runner for {self.task} task...")
         logger.info(f"Model path: {self.model_path}")
         logger.info("LightGenerator initialized successfully!")
