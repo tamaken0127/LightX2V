@@ -12,7 +12,16 @@ class WanStepDistillScheduler(WanScheduler):
     def __init__(self, config):
         # WanSchedulerのdim/num_headsが不要なためBaseSchedulerのみ呼ぶ
         BaseScheduler.__init__(self, config)
-        self.denoising_step_list = config["denoising_step_list"]
+
+        if config.get("denoising_step_list"):
+            # 明示的に指定されている場合はそのまま使う
+            self.denoising_step_list = config["denoising_step_list"]
+        else:
+            # infer_stepsから自動計算（ComfyUI simple schedulerと同等のタイムステップ）
+            infer_steps = config["infer_steps"]
+            step = 1000 // infer_steps
+            self.denoising_step_list = [1000 - i for i in range(0, 1000, step)][:infer_steps]
+
         self.infer_steps = len(self.denoising_step_list)
         self.sample_shift = self.config["sample_shift"]
         self.noise_pred = None
