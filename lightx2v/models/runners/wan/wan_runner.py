@@ -230,22 +230,9 @@ class WanRunner(DefaultRunner):
         return vae_encoder, vae_decoder
 
     def init_scheduler(self):
-        if self.config.get("denoising_step_list"):
-            self.scheduler = WanStepDistillScheduler(self.config)
-            return
-        if self.config["feature_caching"] == "NoCaching":
-            scheduler_class = WanScheduler
-        elif self.config["feature_caching"] == "TaylorSeer":
-            scheduler_class = WanSchedulerTaylorCaching
-        elif self.config.feature_caching in ["Tea", "Ada", "Custom", "FirstBlock", "DualBlock", "DynamicBlock", "Mag"]:
-            scheduler_class = WanSchedulerCaching
-        else:
-            raise NotImplementedError(f"Unsupported feature_caching type: {self.config.feature_caching}")
-
-        if self.config.get("changing_resolution", False):
-            self.scheduler = WanScheduler4ChangingResolutionInterface(scheduler_class, self.config)
-        else:
-            self.scheduler = scheduler_class(self.config)
+        # 常にWanStepDistillScheduler（Euler法）を使用
+        # denoising_step_listが未指定の場合はinfer_stepsから自動計算
+        self.scheduler = WanStepDistillScheduler(self.config)
 
     @ProfilingContext4DebugL1(
         "Run Text Encoder",
