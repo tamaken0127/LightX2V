@@ -6,7 +6,11 @@ except ImportError:
     get_cutlass_fused_moe_module = None
 
 from lightx2v.common.modules.weight_module import WeightModule, WeightModuleList
-from lightx2v.common.ops.attn import FlashAttn2Weight, FlashAttn3Weight  # noqa: F401
+from lightx2v.common.ops.attn import FlashAttn3Weight  # noqa: F401
+# FlashAttn2Weight: Ampere/Ada GPU用（A100, RTX3090/4090等）
+# from lightx2v.common.ops.attn import FlashAttn2Weight
+# FlashAttn4Weight: Blackwell GPU用（RTX5090等）
+# from lightx2v.common.ops.attn import FlashAttn4Weight
 from lightx2v.common.ops.norm.rms_norm_weight import RMSWeightFusedQKNorm3DRope
 from lightx2v.utils.registry_factory import (
     ATTN_WEIGHT_REGISTER,
