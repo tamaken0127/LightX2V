@@ -17,7 +17,11 @@ except ImportError:
     logger.info("flash_attn_varlen_func_v3 not found, please install flash_attn3 first")
     flash_attn_varlen_func_v3 = None
 
-flash_attn_func_v4 = None
+try:
+    from flash_attn.cute import flash_attn_func as flash_attn_func_v4
+except ImportError:
+    logger.info("flash_attn.cute not found, please install flashattention4 first")
+    flash_attn_func_v4 = None
 
 
 from lightx2v.utils.registry_factory import ATTN_WEIGHT_REGISTER
