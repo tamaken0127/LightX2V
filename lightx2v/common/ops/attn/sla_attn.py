@@ -1,32 +1,41 @@
+import time
 import torch
 from loguru import logger
 
 from lightx2v.utils.registry_factory import ATTN_WEIGHT_REGISTER
-
-from .kernels.sla_kernel import _attention
-from .kernels.sla_kernel_ar import _attention_ar
 from .template import AttnWeightTemplate
 from .utils.sla_util import get_block_map, get_cuda_arch
 from .utils.sla_util_blhd import get_block_map_blhd
+
+_t = time.time()
+from .kernels.sla_kernel import _attention
+print(f"[Timing/sla] sla_kernel: {time.time()-_t:.2f}s", flush=True); _t = time.time()
+
+from .kernels.sla_kernel_ar import _attention_ar
+print(f"[Timing/sla] sla_kernel_ar: {time.time()-_t:.2f}s", flush=True); _t = time.time()
+
 from .utils.sparge_util import block_map_incremental_lut_triton, block_map_ordinal_lut_triton, sage2_block_sparse_attn
+print(f"[Timing/sla] sparge_util: {time.time()-_t:.2f}s", flush=True); _t = time.time()
 
 try:
     from flash_attn.cute import flash_attn_func as flash_attn_func_v4
 except ImportError:
     logger.info("flash_attn.cute not found, please install flashattention4 first")
     flash_attn_func_v4 = None
+print(f"[Timing/sla] flash_attn.cute: {time.time()-_t:.2f}s", flush=True); _t = time.time()
 
 try:
     from sageattn3_sparse import sage3_block_sparse_attn
 except ImportError:
     logger.info("sageattn3_sparse not found, please install sageattn3_sparse first")
     sage3_block_sparse_attn = None
+print(f"[Timing/sla] sageattn3_sparse: {time.time()-_t:.2f}s", flush=True); _t = time.time()
 
 try:
     from magi_attention.functional import flex_flash_attn_func as magi_ffa_func
 except ImportError:
     magi_ffa_func = None
-
+print(f"[Timing/sla] magi_attention: {time.time()-_t:.2f}s", flush=True)
 
 @ATTN_WEIGHT_REGISTER("sla_attn")
 class SlaAttnWeight(AttnWeightTemplate):
