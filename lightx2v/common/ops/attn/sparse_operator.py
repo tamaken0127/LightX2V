@@ -1,34 +1,43 @@
+import time
 import torch
 from loguru import logger
 
 from lightx2v.utils.registry_factory import SPARSE_OPERATOR_REGISTER
 from lightx2v_platform.base.global_var import AI_DEVICE
-
-from .kernels.sla_kernel import _attention
 from .utils.sla_util import get_cuda_arch
+
+_t = time.time()
+from .kernels.sla_kernel import _attention
+print(f"[Timing/sparse_op] sla_kernel: {time.time()-_t:.2f}s", flush=True); _t = time.time()
+
 from .utils.sparge_util import block_map_incremental_lut_triton, block_map_ordinal_lut_triton, sage2_block_sparse_attn
+print(f"[Timing/sparse_op] sparge_util: {time.time()-_t:.2f}s", flush=True); _t = time.time()
 
 try:
     from flash_attn.cute import flash_attn_func as flash_attn_func_v4
 except ImportError:
     logger.info("flash_attn.cute not found, please install flashattention4 first")
     flash_attn_func_v4 = None
+print(f"[Timing/sparse_op] flash_attn.cute: {time.time()-_t:.2f}s", flush=True); _t = time.time()
 
 try:
     from sageattn3_sparse import sage3_block_sparse_attn
 except ImportError:
     logger.info("sageattn3_sparse not found, please install sageattn3_sparse first")
     sage3_block_sparse_attn = None
+print(f"[Timing/sparse_op] sageattn3_sparse: {time.time()-_t:.2f}s", flush=True); _t = time.time()
 
 try:
     from magi_attention.functional import flex_flash_attn_func as magi_ffa_func
 except ImportError:
     magi_ffa_func = None
+print(f"[Timing/sparse_op] magi_attention: {time.time()-_t:.2f}s", flush=True); _t = time.time()
 
 try:
     from flex_block_attn import flex_block_attn_func
 except ImportError:
     flex_block_attn_func = None
+print(f"[Timing/sparse_op] flex_block_attn: {time.time()-_t:.2f}s", flush=True)
 
 try:
     import flashinfer
