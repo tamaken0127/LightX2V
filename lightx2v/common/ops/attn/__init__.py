@@ -20,8 +20,9 @@ print(f"[Timing/attn] sla_attn: {time.time()-_t:.2f}s", flush=True); _t = time.t
 from .sparge_attn import SpargeAttnWeight
 print(f"[Timing/attn] sparge_attn: {time.time()-_t:.2f}s", flush=True); _t = time.time()
 
-from .sparse_mask_generator import NbhdMaskGenerator, SlaMaskGenerator, SpargeMaskGenerator, SvgMaskGenerator
-print(f"[Timing/attn] sparse_mask_generator: {time.time()-_t:.2f}s", flush=True); _t = time.time()
+# sparse_mask_generator: svg_attn/@triton.jitで重いためコメントアウト
+# from .sparse_mask_generator import NbhdMaskGenerator, SlaMaskGenerator, SpargeMaskGenerator, SvgMaskGenerator
+print(f"[Timing/attn] sparse_mask_generator: SKIPPED", flush=True); _t = time.time()
 
 from .sparse_operator import FlashinferOperator, FlexBlockOperator, MagiOperator, SlaTritonOperator, SparseFlashAttentionV4Operator, SparseSageAttentionV2Operator, SparseSageAttentionV3Operator
 print(f"[Timing/attn] sparse_operator: {time.time()-_t:.2f}s", flush=True); _t = time.time()
@@ -33,17 +34,22 @@ print(f"[Timing/attn] torch_sdpa: {time.time()-_t:.2f}s", flush=True); _t = time
 # from .ulysses_attn import Ulysses4090AttnWeight, UlyssesAttnWeight
 print(f"[Timing/attn] ulysses_attn: SKIPPED", flush=True); _t = time.time()
 
-from .draft_attn import DraftAttnWeight
-print(f"[Timing/attn] draft_attn: {time.time()-_t:.2f}s", flush=True); _t = time.time()
+# draft_attn: magi_attention importあり
+# from .draft_attn import DraftAttnWeight
+print(f"[Timing/attn] draft_attn: SKIPPED", flush=True); _t = time.time()
 
-from .nbhd_attn import NbhdAttnWeight, NbhdAttnWeightFlashInfer
-print(f"[Timing/attn] nbhd_attn: {time.time()-_t:.2f}s", flush=True); _t = time.time()
+# nbhd_attn: magi_attention importあり
+# from .nbhd_attn import NbhdAttnWeight, NbhdAttnWeightFlashInfer
+print(f"[Timing/attn] nbhd_attn: SKIPPED", flush=True); _t = time.time()
 
-from .radial_attn import RadialAttnWeight
-print(f"[Timing/attn] radial_attn: {time.time()-_t:.2f}s", flush=True); _t = time.time()
+# radial_attn: magi_attention importあり
+# from .radial_attn import RadialAttnWeight
+print(f"[Timing/attn] radial_attn: SKIPPED", flush=True); _t = time.time()
 
-from .svg2_attn import Svg2AttnWeight
-print(f"[Timing/attn] svg2_attn: {time.time()-_t:.2f}s", flush=True); _t = time.time()
+# svg2_attn: @triton.jit × 2あり
+# from .svg2_attn import Svg2AttnWeight
+print(f"[Timing/attn] svg2_attn: SKIPPED", flush=True); _t = time.time()
 
-from .svg_attn import SvgAttnWeight
-print(f"[Timing/attn] svg_attn: {time.time()-_t:.2f}s", flush=True)
+# svg_attn: @triton.jitで18秒かかるためコメントアウト
+# from .svg_attn import SvgAttnWeight
+print(f"[Timing/attn] svg_attn: SKIPPED", flush=True)
