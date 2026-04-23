@@ -1,3 +1,4 @@
+import time
 import torch
 from loguru import logger
 
@@ -5,13 +6,17 @@ from lightx2v.utils.registry_factory import ATTN_WEIGHT_REGISTER
 
 from .template import AttnWeightTemplate
 from .utils.sla_util import get_block_map, get_cuda_arch
+
+_t = time.time()
 from .utils.sparge_util import block_map_incremental_lut_triton, block_map_ordinal_lut_triton, get_block_map_meansim, sage2_block_sparse_attn
+print(f"[Timing/sage] sparge_util: {time.time()-_t:.2f}s", flush=True); _t = time.time()
 
 try:
     from sageattn3_sparse import sage3_block_sparse_attn
 except ImportError:
     logger.info("sageattn3_sparse not found, please install sageattn3_sparse first")
     sage3_block_sparse_attn = None
+print(f"[Timing/sage] sageattn3_sparse: {time.time()-_t:.2f}s", flush=True); _t = time.time()
 
 capability = torch.cuda.get_device_capability(0) if torch.cuda.is_available() else None
 if capability in [(8, 9), (12, 0)]:
@@ -26,6 +31,7 @@ else:
     except ImportError:
         logger.info("sageattn not found, please install sageattention first")
         sageattn = None
+print(f"[Timing/sage] sageattention: {time.time()-_t:.2f}s", flush=True)
 
 try:
     from sageattn3 import sageattn3_blackwell
