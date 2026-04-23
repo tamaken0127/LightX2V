@@ -13,12 +13,14 @@ print(f"[Timing/sparse_op] sla_kernel: {time.time()-_t:.2f}s", flush=True); _t =
 from .utils.sparge_util import block_map_incremental_lut_triton, block_map_ordinal_lut_triton, sage2_block_sparse_attn
 print(f"[Timing/sparse_op] sparge_util: {time.time()-_t:.2f}s", flush=True); _t = time.time()
 
-try:
-    from flash_attn.cute import flash_attn_func as flash_attn_func_v4
-except ImportError:
-    logger.info("flash_attn.cute not found, please install flashattention4 first")
-    flash_attn_func_v4 = None
-print(f"[Timing/sparse_op] flash_attn.cute: {time.time()-_t:.2f}s", flush=True); _t = time.time()
+# flash_attn.cute: 17秒かかるためコメントアウト（Blackwell GPU使用時は有効化）
+# try:
+#     from flash_attn.cute import flash_attn_func as flash_attn_func_v4
+# except ImportError:
+#     logger.info("flash_attn.cute not found, please install flashattention4 first")
+#     flash_attn_func_v4 = None
+flash_attn_func_v4 = None
+print(f"[Timing/sparse_op] flash_attn.cute: SKIPPED", flush=True); _t = time.time()
 
 try:
     from sageattn3_sparse import sage3_block_sparse_attn
