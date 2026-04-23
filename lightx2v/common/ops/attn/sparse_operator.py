@@ -39,12 +39,15 @@ try:
     from flex_block_attn import flex_block_attn_func
 except ImportError:
     flex_block_attn_func = None
-print(f"[Timing/sparse_op] flex_block_attn: {time.time()-_t:.2f}s", flush=True)
+print(f"[Timing/sparse_op] flex_block_attn: {time.time()-_t:.2f}s", flush=True); _t = time.time()
 
-try:
-    import flashinfer
-except ImportError:
-    flashinfer = None
+# flashinfer: 18秒かかるためコメントアウト（使用時は有効化）
+# try:
+#     import flashinfer
+# except ImportError:
+#     flashinfer = None
+flashinfer = None
+print(f"[Timing/sparse_op] flashinfer: SKIPPED", flush=True)
 
 
 @SPARSE_OPERATOR_REGISTER("sla_triton_operator")
