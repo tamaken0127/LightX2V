@@ -11,16 +11,16 @@ import torch
 import torch.distributed as dist
 from loguru import logger
 
+# flux2_klein: 約20秒 コメントアウト
+# hunyuan_video: 約31秒 コメントアウト
+# longcat_image: 約21秒 コメントアウト
+# wan_animate: 約36秒 コメントアウト
+# qwen_image: 約17秒 コメントアウト
+# wan_distill: 約50秒 コメントアウト（ulysses_attnの30秒を含む）
+# ltx2: 約2秒 コメントアウト
+# seedvr: 約1秒 コメントアウト
+
 _t = time.time()
-from lightx2v.models.runners.ltx2.ltx2_runner import LTX2Runner  # noqa: F401
-print(f"[Timing/pipeline] ltx2: {time.time()-_t:.2f}s", flush=True); _t = time.time()
-
-from lightx2v.models.runners.seedvr.seedvr_runner import SeedVRRunner  # noqa: F401
-print(f"[Timing/pipeline] seedvr: {time.time()-_t:.2f}s", flush=True); _t = time.time()
-
-from lightx2v.models.runners.wan.wan_distill_runner import WanDistillRunner  # noqa: F401
-print(f"[Timing/pipeline] wan_distill: {time.time()-_t:.2f}s", flush=True); _t = time.time()
-
 from lightx2v.models.runners.wan.wan_matrix_game2_runner import WanSFMtxg2Runner  # noqa: F401
 print(f"[Timing/pipeline] wan_matrix_game2: {time.time()-_t:.2f}s", flush=True); _t = time.time()
 
