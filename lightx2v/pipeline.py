@@ -15,24 +15,21 @@ try:
 except (ImportError, ModuleNotFoundError) as e:
     logger.warning(f"Flux2KleinRunner not available: {e}")
 
-# Wan2.2_moe専用環境のため使用するrunnerのみimport
 from lightx2v.models.runners.wan.wan_runner import Wan22MoeRunner, WanRunner  # noqa: F401
-
-# 以下は必要な場合にコメントを外す
-# from lightx2v.models.runners.hunyuan_video.hunyuan_video_15_runner import HunyuanVideo15Runner  # noqa: F401
-# from lightx2v.models.runners.longcat_image.longcat_image_runner import LongCatImageRunner  # noqa: F401
-# from lightx2v.models.runners.ltx2.ltx2_runner import LTX2Runner  # noqa: F401
-# from lightx2v.models.runners.qwen_image.qwen_image_runner import QwenImageRunner  # noqa: F401
-# from lightx2v.models.runners.seedvr.seedvr_runner import SeedVRRunner  # noqa: F401
-# from lightx2v.models.runners.wan.wan_animate_runner import WanAnimateRunner  # noqa: F401
-# from lightx2v.models.runners.wan.wan_distill_runner import WanDistillRunner  # noqa: F401
-# from lightx2v.models.runners.wan.wan_matrix_game2_runner import WanSFMtxg2Runner  # noqa: F401
-# from lightx2v.models.runners.wan.wan_sf_runner import WanSFRunner  # noqa: F401
-# from lightx2v.models.runners.wan.wan_vace_runner import WanVaceRunner  # noqa: F401
-# from lightx2v.models.runners.worldplay.worldplay_ar_runner import WorldPlayARRunner  # noqa: F401
-# from lightx2v.models.runners.worldplay.worldplay_bi_runner import WorldPlayBIRunner  # noqa: F401
-# from lightx2v.models.runners.worldplay.worldplay_distill_runner import WorldPlayDistillRunner  # noqa: F401
-# from lightx2v.models.runners.z_image.z_image_runner import ZImageRunner  # noqa: F401
+from lightx2v.models.runners.hunyuan_video.hunyuan_video_15_runner import HunyuanVideo15Runner  # noqa: F401
+from lightx2v.models.runners.longcat_image.longcat_image_runner import LongCatImageRunner  # noqa: F401
+from lightx2v.models.runners.ltx2.ltx2_runner import LTX2Runner  # noqa: F401
+from lightx2v.models.runners.qwen_image.qwen_image_runner import QwenImageRunner  # noqa: F401
+from lightx2v.models.runners.seedvr.seedvr_runner import SeedVRRunner  # noqa: F401
+from lightx2v.models.runners.wan.wan_animate_runner import WanAnimateRunner  # noqa: F401
+from lightx2v.models.runners.wan.wan_distill_runner import WanDistillRunner  # noqa: F401
+from lightx2v.models.runners.wan.wan_matrix_game2_runner import WanSFMtxg2Runner  # noqa: F401
+from lightx2v.models.runners.wan.wan_sf_runner import WanSFRunner  # noqa: F401
+from lightx2v.models.runners.wan.wan_vace_runner import WanVaceRunner  # noqa: F401
+from lightx2v.models.runners.worldplay.worldplay_ar_runner import WorldPlayARRunner  # noqa: F401
+from lightx2v.models.runners.worldplay.worldplay_bi_runner import WorldPlayBIRunner  # noqa: F401
+from lightx2v.models.runners.worldplay.worldplay_distill_runner import WorldPlayDistillRunner  # noqa: F401
+from lightx2v.models.runners.z_image.z_image_runner import ZImageRunner  # noqa: F401
 
 from lightx2v.utils.input_info import init_empty_input_info, update_input_info_from_dict
 from lightx2v.utils.registry_factory import RUNNER_REGISTER
