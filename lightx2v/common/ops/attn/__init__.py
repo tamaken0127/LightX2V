@@ -7,7 +7,7 @@ print(f"[Timing/attn] flash_attn: {time.time()-_t:.2f}s", flush=True); _t = time
 from .general_sparse_attn import GeneralSparseAttnWeight
 print(f"[Timing/attn] general_sparse_attn: {time.time()-_t:.2f}s", flush=True); _t = time.time()
 
-# ring_attn: @torch.jit.scriptによるJITコンパイルで29秒かかるためコメントアウト
+# ring_attn: @torch.jit.scriptで29秒かかるためコメントアウト
 # from .ring_attn import RingAttnWeight
 print(f"[Timing/attn] ring_attn: SKIPPED", flush=True); _t = time.time()
 
@@ -29,8 +29,9 @@ print(f"[Timing/attn] sparse_operator: {time.time()-_t:.2f}s", flush=True); _t =
 from .torch_sdpa import TorchSDPAWeight
 print(f"[Timing/attn] torch_sdpa: {time.time()-_t:.2f}s", flush=True); _t = time.time()
 
-from .ulysses_attn import Ulysses4090AttnWeight, UlyssesAttnWeight
-print(f"[Timing/attn] ulysses_attn: {time.time()-_t:.2f}s", flush=True); _t = time.time()
+# ulysses_attn: 30秒かかるためコメントアウト
+# from .ulysses_attn import Ulysses4090AttnWeight, UlyssesAttnWeight
+print(f"[Timing/attn] ulysses_attn: SKIPPED", flush=True); _t = time.time()
 
 from .draft_attn import DraftAttnWeight
 print(f"[Timing/attn] draft_attn: {time.time()-_t:.2f}s", flush=True); _t = time.time()
