@@ -1,3 +1,4 @@
+import time
 import torch
 from loguru import logger
 
@@ -10,24 +11,28 @@ from .utils.sla_util import get_block_map, get_cuda_arch
 from .utils.sla_util_blhd import get_block_map_blhd
 from .utils.sparge_util import block_map_incremental_lut_triton, block_map_ordinal_lut_triton, sage2_block_sparse_attn
 
-try:
-    from flash_attn.cute import flash_attn_func as flash_attn_func_v4
-except ImportError:
-    logger.info("flash_attn.cute not found, please install flashattention4 first")
-    flash_attn_func_v4 = None
+_t = time.time()
+# flash_attn.cute: 17秒かかるためコメントアウト（Blackwell GPU使用時は有効化）
+# try:
+#     from flash_attn.cute import flash_attn_func as flash_attn_func_v4
+# except ImportError:
+#     logger.info("flash_attn.cute not found, please install flashattention4 first")
+#     flash_attn_func_v4 = None
+flash_attn_func_v4 = None
+print(f"[Timing/sla] flash_attn.cute: SKIPPED", flush=True); _t = time.time()
 
 try:
     from sageattn3_sparse import sage3_block_sparse_attn
 except ImportError:
     logger.info("sageattn3_sparse not found, please install sageattn3_sparse first")
     sage3_block_sparse_attn = None
+print(f"[Timing/sla] sageattn3_sparse: {time.time()-_t:.2f}s", flush=True); _t = time.time()
 
 try:
     from magi_attention.functional import flex_flash_attn_func as magi_ffa_func
 except ImportError:
     magi_ffa_func = None
-
-
+print(f"[Timing/sla] magi_attention: {time.time()-_t:.2f}s", flush=True)
 @ATTN_WEIGHT_REGISTER("sla_attn")
 class SlaAttnWeight(AttnWeightTemplate):
     sparsity_ratio = 0.8
@@ -264,3 +269,4 @@ class SlaAttnWeight(AttnWeightTemplate):
         k_ranges = torch.stack([k_start, k_end], dim=1).to(dtype=torch.int32)
 
         return q_ranges, k_ranges
+
