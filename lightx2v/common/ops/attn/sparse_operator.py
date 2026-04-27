@@ -1,3 +1,4 @@
+import time
 import torch
 from loguru import logger
 
@@ -8,34 +9,42 @@ from .kernels.sla_kernel import _attention
 from .utils.sla_util import get_cuda_arch
 from .utils.sparge_util import block_map_incremental_lut_triton, block_map_ordinal_lut_triton, sage2_block_sparse_attn
 
-try:
-    from flash_attn.cute import flash_attn_func as flash_attn_func_v4
-except ImportError:
-    logger.info("flash_attn.cute not found, please install flashattention4 first")
-    flash_attn_func_v4 = None
+_t = time.time()
+# flash_attn.cute: 17秒かかるためコメントアウト（Blackwell GPU使用時は有効化）
+# try:
+#     from flash_attn.cute import flash_attn_func as flash_attn_func_v4
+# except ImportError:
+#     logger.info("flash_attn.cute not found, please install flashattention4 first")
+#     flash_attn_func_v4 = None
+flash_attn_func_v4 = None
+print(f"[Timing/sparse_op] flash_attn.cute: SKIPPED", flush=True); _t = time.time()
 
 try:
     from sageattn3_sparse import sage3_block_sparse_attn
 except ImportError:
     logger.info("sageattn3_sparse not found, please install sageattn3_sparse first")
     sage3_block_sparse_attn = None
+print(f"[Timing/sparse_op] sageattn3_sparse: {time.time()-_t:.2f}s", flush=True); _t = time.time()
 
 try:
     from magi_attention.functional import flex_flash_attn_func as magi_ffa_func
 except ImportError:
     magi_ffa_func = None
+print(f"[Timing/sparse_op] magi_attention: {time.time()-_t:.2f}s", flush=True); _t = time.time()
 
 try:
     from flex_block_attn import flex_block_attn_func
 except ImportError:
     flex_block_attn_func = None
+print(f"[Timing/sparse_op] flex_block_attn: {time.time()-_t:.2f}s", flush=True); _t = time.time()
 
-try:
-    import flashinfer
-except ImportError:
-    flashinfer = None
-
-
+# flashinfer: 18秒かかるためコメントアウト（使用時は有効化）
+# try:
+#     import flashinfer
+# except ImportError:
+#     flashinfer = None
+flashinfer = None
+print(f"[Timing/sparse_op] flashinfer: SKIPPED", flush=True)
 @SPARSE_OPERATOR_REGISTER("sla_triton_operator")
 class SlaTritonOperator:
     def __init__(self, operator_setting={}):
@@ -337,3 +346,4 @@ class FlashinferOperator:
         out = out.transpose(0, 1)
 
         return out.reshape(max_seqlen_q, -1)
+
